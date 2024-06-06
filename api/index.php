@@ -2,14 +2,6 @@
 
 include '_tools.php';
 
-/*
- * Request type : GET
- * Parameters :
- *  - type : string among "css" | "json" | "image"
- *  - bucket? : string among "icons" | "apps" | "pictures"
- *  - file : string
- */
-
 header(formatHeader('Access-Control-Allow-Origin', '*'));
 
 // Block POST requests
@@ -23,37 +15,29 @@ if (!isValidRequest($_GET)) {
     die();
 }
 
-// Tree search
-switch ($_GET['type']) {
-    case "css":
-        header(formatHeader('Content-type', 'text/css'));
-        showFileOrFallback(BASE_URL . "css/", $_GET['file'], "css");
-        break;
-    case "json":
-        header(formatHeader('Content-Type', 'application/json'));
-        showFileOrFallback(BASE_URL . "json/", $_GET['file'], "json");
-        break;
-    case "image":
-        $root = BASE_URL . "images/";
-        switch ($_GET['bucket']) {
-            case "apps":
-                showImageOrFallback($root . "apps/", $_GET['file'], "png");
-                break;
-            case "gifs":
-                showImageOrFallback($root . "gifs/", $_GET['file'], "gif");
-                break;
-            case "icons":
-                showImageOrFallback($root . "icons/", $_GET['file'], "png");
-                break;
-            case "pictures":
-                showImageOrFallback($root . "pictures/", $_GET['file'], "png");
-                break;
-            default:
-                http_response_code(401);
-                die();
+$path = BASE_URL;
+$currentNode = getTree('../json/filetree.json');
+
+if (array_key_exists($_GET['type'], $currentNode)) {
+    $currentNode = $currentNode[$_GET['type']];
+    $path = $path . $currentNode['path'];
+    if ($currentNode['is-bucket']) {
+        if (!(
+            isset($_GET['bucket']) &&
+            array_key_exists($_GET['bucket'], $currentNode['buckets']))
+        ) {
+            http_response_code(401);
+            die();
         }
-        break;
-    default:
-        http_response_code(401);
-        die();
+        $currentNode = $currentNode['buckets'][$_GET['bucket']];
+        $path = $path . $currentNode['path'];
+    }
+    header(formatHeader('Content-Type',$currentNode['content-type']));
+    $res = showFileOrFallback($path, $_GET['file'], $currentNode['type']);
+    foreach ($currentNode['headers'] as $header) {
+        $formattedHeader = conditionalFormat($header, '##size##', $res[0]);
+        $formattedHeader = conditionalFormat($formattedHeader, '##filename##', $res[1]);
+        header($formattedHeader);
+    }
+    die();
 }

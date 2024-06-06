@@ -1,10 +1,18 @@
 <?php
 
-include_once "_consts.php";
+const BASE_URL = "../";
+const REDIRECT = "https://blahaj.land/";
+const FALLBACK = "_fallback";
 
 function formatHeader(string $key, string $value): string
 {
     return $key . ": " . $value;
+}
+
+function errorAndDie($error): void
+{
+    echo $error;
+    die();
 }
 
 function isValidRequest(array $reqs): bool
@@ -14,35 +22,39 @@ function isValidRequest(array $reqs): bool
         $sz > 0 &&
         $sz < 4 &&
         isset($reqs['type']) &&
-        isset($reqs['file']) &&
-        !($reqs['type'] === "images") ||
-        isset($reqs['bucket']);
+        isset($reqs['file']);
 }
 
-function showFileOrFallback(string $path, string $filePath, string $format): void
+function getPath(string $path, string $fileName, string $format): string
 {
-    $file = file_get_contents($path . $filePath . "." . $format);
-    if ($file === false) {
-        echo file_get_contents($path . FALLBACK . "." . $format);
-    } else {
-        echo $file;
-    }
+    return $path . $fileName . $format;
 }
 
-function showImageOrFallback(string $path, string $request, string $format): void
+function showFileOrFallback(string $path, string $fileName, string $format): array
 {
-    header(formatHeader('Content-type', 'image/' . $format));
-    $file = file_get_contents($path . $request . "." . $format);
+    $file = file_get_contents(getPath($path, $fileName, $format));
+    $headerfn = $fileName . $format;
     if ($file === false) {
-        $error = file_get_contents($path . FALLBACK . "." . $format);
-        clearstatcache();
-        header(formatHeader("Content-Length", strlen($error)));
-        header(formatHeader("Content-Disposition", "inline; filename=" . FALLBACK . "." . $format));
-        echo $error;
+        $err = file_get_contents(getPath($path, FALLBACK, $format));
+        $lenght = strlen($err);
+        echo $err;
     } else {
-        header(formatHeader("Content-Length", strlen($file)));
-        header(formatHeader("Content-Disposition", "inline; filename=" . $request . "." . $format));
-        clearstatcache();
+        $lenght = strlen($file);
         echo $file;
     }
+    return [$lenght, $headerfn];
+}
+
+
+function getTree($path)
+{
+    $treeFile = file_get_contents($path) or errorAndDie("No tree available");
+    $treeRoot = json_decode($treeFile, true) or errorAndDie("No tree available");
+    $tree = $treeRoot["_entrypoint"] or errorAndDie("No tree available");
+    return $tree;
+}
+
+function conditionalFormat($string, $placeholder, $value): string
+{
+    return str_replace($placeholder, $value, $string);
 }
