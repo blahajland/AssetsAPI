@@ -1,5 +1,4 @@
-*
-./index.php
-./ui/*
-./app/*
-./.git
+/*
+/.idea/*
+!src
+!/*.*

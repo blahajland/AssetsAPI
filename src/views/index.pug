@@ -1,0 +1,48 @@
+doctype html
+html(lang='en')
+head
+    meta(charset="UTF-8")
+    title B.L.A.S
+    link(rel="stylesheet", href="/api/?type=css&file=api")
+    link(rel="icon", href="/api/?type=image&bucket=pictures&file=favicon")
+    meta(property='og:title' content='B.L.A.S')
+    meta(property='og:description' content='Blahaj•Land•Assets•Store')
+    meta(property='og:image' content='/api/?type=image&bucket=pictures&file=thumbnail')
+    meta(property='twitter:card' content='summary_large_image')
+    meta(property='twitter:image' content='/api/?type=image&bucket=pictures&file=thumnbnail-twitter')
+    meta(property='twitter:description' content='Blahaj•Land•Assets•Store')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+body
+    pre=ascii_icon
+    pre=ascii_title
+    p Blahaj&bull;Land&bull;Assets&bull;Store
+    p #[br]
+    p.warning === Warning ===
+    p.warning
+        | This API, while public, is not meant to be used by any other apps or websites. #[br]
+        | If you're a dev, please refer to the internal API documentation for more information. #[br]
+        | Otherwise, please enjoy the UI of this page B)
+    p #[br]
+    p
+        | === Current treeview ===
+    div
+        ul
+            each index, val  in treeview
+                li !{val}
+                ul
+                    each e in index
+                        li !{e}
+    p #[br]
+    p
+        | === Test function ===
+    form.fakeInput(method="get", action="api/")
+        p api/&quest;type&equals;
+        label(for='type')
+            input#type(type="text", name="type")
+        p &amp;bucket&equals;
+        label(for="bucket")
+            input#bucket(type="text", name="bucket")
+        p &amp;file&equals;
+        label(for="file")
+            input#file(type="text", name="file")
+        button.submit(type="submit") >>> Submit <<<
